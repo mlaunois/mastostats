@@ -81,7 +81,7 @@ ${err}`;
    * #about command handler
    */
   async about(command, args) {
-    return `Mastostats ${this.parent.version}, by Maxime Launois
+    return `Mastostats ${this.version}, by Maxime Launois
 
 Copyright (C) 2019 Maxime Launois, licensed under the MIT License.
 `;

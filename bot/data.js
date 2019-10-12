@@ -81,7 +81,7 @@ class BotData {
     this.__data.processed_mentions = newValue || [];
   }
 
-  commit() {
+  commit() {console.log(this.__data);
     if (!this.__data) {
       // Bot data has not been loaded
       return;
@@ -90,7 +90,7 @@ class BotData {
     // Ignore any write errors
     try {
       let contents = JSON.stringify(this.__data);
-      fs.writeFileSync(__dirname + '/../.data/data.json', contents, 'utf-8');
+      fs.writeFileSync(__dirname + '/../.data/data.json', contents, 'utf8');
     } catch (err) {}
   }
 
@@ -107,7 +107,7 @@ class BotData {
 
     // On error, silently replace with empty data
     try {
-      let contents = fs.readFileSync(__dirname + '/../.data/data.json', 'utf-8');
+      let contents = fs.readFileSync(__dirname + '/../.data/data.json', 'utf8');
       this.__data = JSON.parse(contents);
     } catch (err) {
       // File access or malformed JSON error

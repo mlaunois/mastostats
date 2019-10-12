@@ -99,9 +99,8 @@ class MastodonApi {
    * Fetches mentions from the Mastodon server.
    */
   async mentions() {
-    return await this.get('notifications', {
-      exclude_types: [ 'follow', 'favourite', 'reblog' ]
-    });
+    let notifications = await this.get('notifications', {});
+    return notifications.filter(i => i.type == 'mention');
   }
 
   /**
@@ -211,7 +210,7 @@ https://mastostats.ftp.sh/docs/errors/fatal`);
 
       // Send the block request
       this.post(`accounts/${accountId}/unblock`).then(() => {
-        this.parent.data.blockedAccounts = this.parent.data.blockedAccounts.filter((value) => value != accountId);
+        this.parent.data.blockedAccounts = this.parent.data.blockedAccounts.filter((value) => value !== accountId);
         resolve();
       }).catch((err) => {
         // Propagate the error

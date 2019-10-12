@@ -64,7 +64,8 @@ class StatsBot {
    * All runtime errors go to this function.
    */
   handleError(err) {
-
+    // TODO: add a proper error handler
+    console.error(err);
   }
 }
 

@@ -62,6 +62,8 @@ bot.mastodon.mentions().then((result) => {
         // Note: only (at most) the first four requests are answered
         bot.mastodon.block(mention.account.id);
         bot.data.blockedAccounts.push(mention.account.id);
+        bot.data.commit();
+        console.log(`Blocking account ${mention.account.id}...`);
         continue;
       }
 

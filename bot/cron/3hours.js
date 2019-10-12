@@ -49,8 +49,13 @@ bot.mastodon.self().then((account) => {
     if (!account) {
       continue;
     }
+    if (bot.logger) {
+      bot.logger.error(`Unblocking account ${account}`);
+    } else {
+      console.log(`Unblocking account ${account}`);
+    }
 
-    bot.mastodon.unblock(account);
+    bot.mastodon.unblock(account).then(() => bot.data.commit());
   }
   return Promise.resolve();
 }).catch((err) => {
@@ -61,5 +66,9 @@ bot.mastodon.self().then((account) => {
     console.log(err);
   }
 }).finally(() => {
-  bot.data.commit();
+  if (bot.logger) {
+    bot.logger.error("Committing server data...");
+  } else {
+    console.log("Committing server data...");
+  }
 });
