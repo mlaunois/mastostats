@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    ${ head(`#instances help | Mastostats ${bot.version} documentation`,
+            ``,
+            `https://mastostats.ftp.sh/docs/commands/instances`,
+            [ 'doc' ]) }
+  </head>
+  <body>
+    <header id="header">
+      <ul id="header-items">
+        <li class="header-item">
+          <a href="/">
+            <img src="/assets/official-icon.png" width="125" alt="Mastostats" />
+          </a>
+        </li>
+        <li class="header-item">
+          <a class="active" href="/docs">
+            Docs
+          </a>
+        </li>
+      </ul>
+    </header>
+    <main id="main-content">
+      <h1>#instances help</h1>
+      <h2 id="usage">Usage</h2>
+      <pre>#instances [filters...]</pre>
+
+      <h2 id="parameters">Parameters</h2>
+      <h3 id="parameter-filter">[filters]</h3>
+      <p>
+        <code>[filters]</code> is a list of filters to apply to the instance list. It should be formatted as a list
+        of space-delimited key-value pairs (i.e <code>max_users=1000</code>). As of version ${bot.version},
+        the list of available filters is:
+      </p>
+      <ul>
+        <li id="parameter-filter-min-statuses">
+          <code>min_statuses</code>: filter out instances which do not have at least the specified number of posted statuses.
+          Must be a positive integer. If <code>0</code> (the default) or invalid, this filter is ignored.
+        </li>
+        <li id="parameter-filter-min-users">
+          <code>min_users</code>: filter out instances which do not have at least the specified number of users.
+          Must be a positive integer. If <code>0</code> (the default) or invalid, this filter is ignored.
+        </li>
+        <li id="parameter-filter-max-statuses">
+          <code>max_statuses</code>: filter out instances which have more posted statuses than specified.
+          Must be a positive integer. If <code>0</code> (the default) or invalid, this filter is ignored.
+        </li>
+        <li id="parameter-filter-max-users">
+          <code>max_users</code>: filter out instances which have more users than specified.
+          Must be a positive integer. If <code>0</code> (the default) or invalid, this filter is ignored.
+        </li>
+        <li id="parameter-filter-sort">
+          <code>sort</code>: <em>Alias of <a href="#parameter-filter-sort-by"><code>sort_by</code></a></em>
+        </li>
+        <li id="parameter-filter-sort-by">
+          <code>sort_by</code>: sort returned instances according to a specified criteria.
+          As of version 1.0.0, the available sort options are
+          <ul>
+            <li><code>alpha</code> / <code>alphabetically</code> / <code>name</code>: sort instances by name in alphabetical order
+            <li><code>statuses</code>: sort instances by posted statuses, the instances with the least statuses coming first.</li>
+            <li><code>users</code>: sort instances by registered users, the instances with the least users coming first.</li>
+            <li><code>version</code>: sort instances by version, the instances with the earliest version (or unknown) coming first.</li>
+          </ul>
+          The default value for this filter is <code>alpha</code>
+          Some values may instruct Mastostats to display instances differently:
+          <ul>
+            <li><code>statuses</code> displays the number of posted statuses on each instance.</li>
+            <li><code>users</code> displays the number of registered users on each instance.</li>
+            <li><code>version</code> displays the version installed on each instance.</li>
+          </ul>
+        </li>
+        <li id="parameter-filter-version">
+          <code>version</code>: filter out instances whose running Mastodon version does not match the specified
+          <a href="https://www.npmjs.com/package/semver#ranges">SemVer range</a>. Must be a valid
+          <a href="https://www.npmjs.com/package/semver#ranges">SemVer range</a>. If omitted or invalid, this filter
+          is ignored.
+        </li>
+      </ul>
+    </main>
+  </body>
+</html>

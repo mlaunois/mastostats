@@ -1,0 +1,554 @@
+${ (function () {
+  // Query parameters validation
+  req.query.start = Number.parseInt(req.query.start);
+  req.query.end = Number.parseInt(req.query.end);
+  req.query.size = Number.parseInt(req.query.size);
+
+  // Determine other values based on other ones and defaults
+  if (req.query.start && req.query.end) {
+    req.query.size = req.query.end - req.query.start + 1;
+  } else if (req.query.start && req.query.size) {
+    req.query.end = req.query.start + req.query.size - 1;
+  } else if (req.query.end && req.query.size) {
+    req.query.start = req.query.end - req.query.start + 1;
+  } else if (req.query.start) {
+    req.query.size = 10;
+    req.query.end = req.query.start + 10;
+  } else if (req.query.size) {
+    req.query.start = 0;
+    req.query.end = req.query.size;
+  } else if (req.query.end) {
+    req.query.size = 10;
+    req.query.start = req.query.end - 10;
+  } else {
+    req.query.start = 0;
+    req.query.end = req.query.size = 10;
+  }
+
+  // Enforcing boundaries
+  req.query.start = Math.max(0, req.query.start);
+  req.query.end = Math.min(bot.data.bannedInstances.length, req.query.end);
+  req.query.size = Math.min(bot.data.bannedInstances.length, req.query.size);
+
+  return '';
+})() }
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Banned instances - Mastostats Control Panel</title>
+    <link rel="stylesheet" href="/assets/controlpanel.css" />
+    <style>
+      #banned-instance-list {
+        border: 1px solid #000000;
+      }
+      #banned-instance-list .header {
+        background: #d7d7d7;
+        border-bottom: 1px solid #000000;
+        margin: 0;
+        padding: 8px;
+      }
+      #banned-instance-list .header h2 {
+        display: inline;
+        font-size: 100%;
+        margin: 0;
+      }
+      #banned-instance-list .header .result-indicator {
+        float: right;
+      }
+      #banned-instance-list .list {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+      }
+      #banned-instance-list .list li {
+        padding: 8px;
+      }
+      #banned-instance-list .footer {
+        background: #d7d7d7;
+        border-top: 1px solid #000000;
+        margin: 0;
+        padding: 8px;
+      }
+      #banned-instance-list .instance-options {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+      }
+      #banned-instance-list .instance-options li {
+        display: inline-block;
+      }
+      #banned-instance-list .instance-options li.editing-field {
+        display: none;
+      }
+      #banned-instance-list .instance-options li:not(:nth-last-child(2)) {
+        padding-right: 8px;
+      }
+      #banned-instance-list .instance-options li:not(.editing-field) a {
+        color: #000000;
+      }
+      #banned-instance-list .instance-options li a {
+        text-decoration: none;
+      }
+      #banned-instance-list .instance-options li.editing-field a {
+        padding-right: 5px;
+      }
+
+      .input-field {
+        border: none;
+        border-radius: 10px;
+        outline: none;
+        padding: 5px;
+      }
+      .input-field.invalid {
+        border: 1px solid #ff0000;
+      }
+      .validation-message {
+        color: #ff0000;
+        font-weight: bold;
+      }
+      .done-action {
+        color: #00cf00;
+        font-weight: bold;
+      }
+      .cancel-action {
+        color: #ff0000;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="header">
+      <ul id="header-items">
+        <li class="header-item">
+          <a href="control-panel">
+            <img src="/assets/official-icon.png" width="125" alt="Mastostats" />
+          </a>
+        </li>
+        <li class="header-item">
+          <a href="banned-instances">
+            Banned instances
+          </a>
+        </li>
+        <li class="header-item right">
+          <a href="/">
+            <i class="fas fa-home homepage-icon"></i>
+          </a>
+        </li>
+      </ul>
+    </header>
+    <main id="main-content">
+      <h1>Banned Mastodon instances</h1>
+      <div id="banned-instance-list">
+        <div class="header">
+          <h2>List of banned instances</h2>
+          <span class="result-indicator">
+            Showing <span class="result-start">0</span> to <span class="result-end">0</span> on <b class="result-total">0</b> entries
+          </span>
+          <div class="size-selection">
+            <form action="banned-instances" method="get" style="text-align: right">
+              Table size: <input type="number" class="input-field" value="${ req.query.size }" min="1" /> entries
+            </form>
+          </div>
+        </div>
+        <ul class="list">
+          <li><i>No entries on this list</i></li>
+        </ul>
+        <div class="footer">
+          <ul class="instance-options">
+            <li>
+              <a class="add-banned-instance" href="banned-instances/add">
+                <i class="fas fa-plus"></i>
+              </a>
+            </li>
+            <li>
+              <a class="paginate-first ${ req.query.start == 0 ? 'disabled' : '' }" ${ req.query.start == 0 ? '' : `href="banned-instances?start=0&size=${req.query.size}"` }>
+                <i class="fas fa-angle-double-left"></i>
+              </a>
+            </li>
+            <li>
+              <a class="paginate-left ${ req.query.start == 0 ? 'disabled' : '' }" ${ req.query.start == 0 ? '' : `href="banned-instances?start=${ Math.max(0, req.query.start - req.query.size ) }&size=${req.query.size}"` }>
+                <i class="fas fa-angle-left"></i>
+              </a>
+            </li>
+            <li>
+              <a class="paginate-right ${ req.query.end >= bot.data.bannedInstances.length ? 'disabled' : '' }"
+                 ${ req.query.end >= bot.data.bannedInstances.length ? '' : `href="banned-instances?start=${ Math.min(req.query.end, bot.data.bannedInstances.length) }&size=${req.query.size}"` }>
+                <i class="fas fa-angle-right"></i>
+              </a>
+            </li>
+            <li>
+              <a class="paginate-last ${ req.query.end >= bot.data.bannedInstances.length ? 'disabled' : '' }"
+                 ${ req.query.end >= bot.data.bannedInstances.length ? '' : `href="banned-instances/?start=${ Math.floor(bot.data.bannedInstances.length / req.query.size) * req.query.size }&size=${req.query.size}"` }>
+                <i class="fas fa-angle-double-right"></i>
+              </a>
+            </li>
+            <li class="editing-field">
+            </li>
+          </ul>
+        </div>
+      </div>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://use.fontawesome.com/releases/v5.10.0/js/all.js"></script>
+    <script>
+      // Helper functions
+      var removeConflictingText = function () {
+        $('.fas, .fab').html('');
+      }
+      var replacementText = function (faIconName, text) {
+        setTimeout(function () {
+          $('i.fa-' + faIconName).text(text);
+        }, 250);
+      }
+      var registerActionCallbacks = function (doneCallback) {
+        $('.done-action').click(function (event) {
+          // Execute the callback
+          doneCallback(event);
+
+          event.preventDefault();
+          var optionList = $(this).parent().parent();
+
+          optionList.removeClass('editing')
+            .find('li.editing-field')
+            .html('')
+            .hide();
+          optionList.find('li:not(.editing-field)')
+            .show();
+        });
+        $('.cancel-action').click(function (event) {
+          event.preventDefault();
+          var optionList = $(this).parent().parent();
+
+          optionList.removeClass('editing')
+            .find('li.editing-field')
+            .html('')
+            .hide();
+          optionList.find('li:not(.editing-field)')
+            .show();
+        });
+
+        // Accessibility text for icons
+        replacementText('check', 'done');
+        replacementText('times', 'cancel');
+      }
+      var updateTable = function (result, noRefresh) {
+        var itemCount = result.items.length;
+
+        // No refresh mode
+        if (noRefresh) {
+          $('#banned-instance-list .list li')
+            .map(function (index) {
+              if (index >= paginationStart - 1 && index <= paginationEnd - 1) {
+                $(this).addClass('displayed').show();
+              } else {
+                $(this).removeClass('displayed').hide();
+              }
+            });
+          $('.result-start').text(Math.min(paginationStart, itemCount));
+          $('.result-end').text(Math.min(paginationEnd, itemCount));
+          $('.result-total').text(itemCount);
+          return;
+        }
+        if (itemCount > 0) {
+          $('#banned-instance-list .list').html('');
+        }
+
+        for (var i = 0; i < itemCount; i++) {
+          var createdElement = $(document.createElement('li'))
+            .html('<a class="link"></a><a class="remove right"><i class="fas fa-trash">remove</i></a>')
+            .find('a.link')
+            .attr('href', 'http://' + result.items[i])
+            .text(result.items[i])
+            .parent();
+
+          // Assign click handler for the created list item
+          var instanceName = createdElement.find('a.link')
+            .text();
+          createdElement.find('a.remove')
+            .attr('href', 'banned-instances/remove/' + instanceName)
+            .click(function (event) {
+              event.preventDefault();
+              socket.emit('remove-banned-instance-list', $(this).prev('.link').text());
+
+              $(this).parent().nextAll(':not(.displayed)').eq(0).addClass('displayed').show();
+              $(this).parent().remove();
+
+              // Remove one to total
+              $('.result-total').text(function (_, total) {
+                return Number.parseInt(total) - 1;
+              });
+              $('.result-end').text(function (_, end) {
+                var total = Number.parseInt($('.result-total').text());
+                return Math.min(total, end);
+              });
+            });
+          if (i >= paginationStart - 1 && i <= paginationEnd - 1) {
+            createdElement.addClass('displayed').show();
+          } else {
+            createdElement.removeClass('displayed').hide();
+          }
+
+          createdElement.appendTo('#banned-instance-list .list');
+        }
+        $('.result-start').text(Math.min(paginationStart, itemCount));
+        $('.result-end').text(Math.min(paginationEnd, itemCount));
+        $('.result-total').text(itemCount);
+
+        // Remove conflicting text from icons
+        removeConflictingText();
+
+        // Accessible icons
+        $('i.homepage-icon').text('Homepage');
+        replacementText('plus', 'add');
+        replacementText('angle-left', 'prev');
+        replacementText('angle-right', 'next');
+        replacementText('angle-double-left', 'first');
+        replacementText('angle-double-right', 'last');
+        replacementText('trash', 'remove');
+      };
+      var validateHostname = function (hostname) {
+        if (!hostname) {
+          $('.instance-options li.editing-field .validation-message').show().text('Required');
+          $('.instance-options li.editing-field .input-field').addClass('invalid');
+          return false;
+        } else if (!hostname.match(/^([A-Za-z0-9-_]+.)*[A-Za-z0-9-_]+$/)) {
+          $('.instance-options li.editing-field .validation-message').show().text('"' + hostname + '" must be a valid hostname');
+          $('.instance-options li.editing-field .input-field').addClass('invalid');
+          return false;
+        } else if (result.items.filter(function (value) {
+          return value == hostname;
+        }).length) {
+          $('.instance-options li.editing-field .validation-message').show().text(hostname + ' has already been banned');
+          $('.instance-options li.editing-field .input-field').addClass('invalid');
+          return false;
+        } else {
+          $('.instance-options li.editing-field .validation-message').hide().text('');
+          $('.instance-options li.editing-field .input-field').removeClass('invalid');
+          return true;
+        }
+      }
+
+      // Remove conflicting text from icons
+      removeConflictingText();
+
+      // Globals
+      // Note: paginationStart and paginationEnd are one-based, whereas array indices are URL query params are zero-based
+      var paginationStart = ${ req.query.start + 1 };
+      var paginationEnd = ${ req.query.end };
+      var paginationSize = ${ req.query.size };
+
+      // Fetch banned instances list and listen for result
+      var socket = io();
+      socket.emit('get-banned-instance-list');
+      socket.on('result-banned-instance-list', function (result) {
+        window.result = result;
+        updateTable(result);
+      });
+
+      // Input controller
+      var changeCallback = function (event) {
+        var newValue = Number.parseInt($(this).val());
+        if (newValue) {
+          var oldValue = paginationSize;
+
+          paginationSize = newValue;
+          paginationStart = Math.floor((paginationStart - 1) * newValue / oldValue) + 1;
+          paginationEnd = paginationStart + paginationSize - 1;
+          updateTable(result, true);
+
+          if (paginationEnd < result.items.length) {
+            $('.paginate-right').removeClass('disabled')
+              .attr('href', 'banned-instances?start=' + escape(paginationStart + paginationSize - 1) + '&size=' + escape(paginationSize));
+            $('.paginate-last').removeClass('disabled')
+              .attr('href', 'banned-instances?start=' + escape(Math.floor(result.items.length / paginationSize) * paginationSize - 1) + '&size=' + escape(paginationSize));
+          } else {
+            $('.paginate-last').attr('href', null)
+              .addClass('disabled');
+            $('.paginate-right').attr('href', null)
+              .addClass('disabled');
+          }
+          if (paginationStart > 1) {
+            $('.paginate-left').removeClass('disabled')
+              .attr('href', 'banned-instances?start=' + escape(paginationStart - (paginationSize + 1)) + '&size=' + escape(paginationSize));
+            $('.paginate-first').removeClass('disabled')
+              .attr('href', 'banned-instances?start=0&size=' + escape(paginationSize));
+          } else {
+            $('.paginate-left').addClass('disabled')
+              .attr('href', null);
+            $('.paginate-first').addClass('disabled')
+              .attr('href', null);
+          }
+        }
+      };
+      $('.size-selection .input-field').keyup(changeCallback)
+        .change(changeCallback);
+
+      // Action buttons
+      $('.add-banned-instance').click(function (event) {
+        event.preventDefault();
+        var optionList = $(this).parent().parent();
+
+        optionList.addClass('editing')
+          .find('li:not(.editing-field)')
+          .hide();
+        $('<input type="text" required="required" class="input-field" /> <a class="done-action" href="#"><i class="fas fa-check"></i></a> <a class="cancel-action" href="#"><i class="fas fa-times"></i></a> <div class="validation-message" style="display: none"></div>')
+          .appendTo(optionList.find('li.editing-field').show());
+        $('.instance-options li.editing-field .input-field').focus()
+          .keyup(function (event) {
+            if (!validateHostname($(this).val())) {
+              return;
+            }
+            if (event.which == 13) {
+              // Enter key
+              $(this).next('.done-action').click();
+            } else if (event.which == 27) {
+              // ESC key
+              $(this).siblings('.cancel-action').click();
+            }
+          });
+
+        registerActionCallbacks(function (event) {
+          var instanceName = $('.instance-options li.editing-field .input-field').val();
+          socket.emit('add-banned-instance-list', instanceName);
+
+          // Add the list item
+          var createdElement = $(document.createElement('li'))
+            .html('<a class="link"></a><a class="remove right"><i class="fas fa-trash"></i></a>')
+            .find('a.link')
+            .attr('href', 'http://' + instanceName)
+            .text(instanceName)
+            .parent();
+
+          // Assign click handler for the created list item
+          createdElement.find('a.remove')
+            .attr('href', 'banned-instances/remove/' + instanceName)
+            .click(function (event) {
+              event.preventDefault();
+              socket.emit('remove-banned-instance-list', $(this).prev('.link').text());
+
+              $(this).parent().nextAll(':not(.displayed)').eq(0).addClass('displayed').show();
+              $(this).parent().remove();
+
+              // Remove one to total
+              $('.result-total').text(function (_, total) {
+                return Number.parseInt(total) - 1;
+              });
+              $('.result-end').text(function (_, end) {
+                var total = Number.parseInt($('.result-total').text());
+                return Math.min(total, end);
+              });
+            });
+          createdElement.appendTo('#banned-instance-list .list');
+          updateTable(result, true);
+
+          // Add one to total
+          $('.result-total').text(function (_, total) {
+            return Number.parseInt(total) + 1;
+          });
+          $('.result-end').text(function (_, end) {
+            var total = Number.parseInt($('.result-total').text());
+            var oldEnd = Number.parseInt(end);
+
+            if (total - 1 == oldEnd) {
+              oldEnd++;
+            }
+            return oldEnd;
+          });
+
+          // For icons that don't show
+          replacementText('trash', 'remove');
+        });
+      });
+      $('.paginate-left').click(function (event) {
+        event.preventDefault();
+
+        paginationStart -= paginationSize;
+        if (paginationStart < 1) {
+          paginationStart = 1;
+        }
+        paginationEnd = paginationStart + paginationSize - 1;
+        updateTable(result, true);
+
+        if (paginationStart > 1) {
+          $(this).removeClass('disabled')
+            .attr('href', 'banned-instances?start=' + escape(paginationStart - (paginationSize + 1)) + '&size=' + escape(paginationSize));
+          $('.paginate-first').removeClass('disabled')
+            .attr('href', 'banned-instances?start=0&size=' + escape(paginationSize));
+        } else {
+          $(this).addClass('disabled')
+            .attr('href', null);
+          $('.paginate-first').addClass('disabled')
+            .attr('href', null);
+        }
+        if (paginationEnd < result.items.length) {
+          $('.paginate-right').removeClass('disabled')
+            .attr('href', 'banned-instances?start=' + escape(paginationStart - (paginationSize + 1)) + '&size=' + escape(paginationSize));
+          $('.paginate-last').removeClass('disabled')
+            .attr('href', 'banned-instances?start=' + escape(Math.floor(result.items.length / paginationSize) * paginationSize) + '&size=' + escape(paginationSize));
+        }
+      });
+      $('.paginate-right').click(function (event) {
+        event.preventDefault();
+
+        paginationStart += paginationSize;
+        paginationEnd += paginationSize;
+        updateTable(result, true);
+
+        if (paginationEnd < result.items.length) {
+          $(this).removeClass('disabled')
+            .attr('href', 'banned-instances?start=' + escape(paginationStart - (paginationSize + 1)) + '&size=' + escape(paginationSize));
+          $('.paginate-last').removeClass('disabled')
+            .attr('href', 'banned-instances?start=' + escape(Math.floor(result.items.length / paginationSize) * paginationSize) + '&size=' + escape(paginationSize));
+        } else {
+          $('.paginate-last').attr('href', null)
+            .addClass('disabled');
+          $(this).attr('href', null)
+            .addClass('disabled');
+        }
+        if (paginationStart > 1) {
+          $('.paginate-left').removeClass('disabled')
+            .attr('href', 'banned-instances?start=' + escape(paginationStart - (paginationSize + 1)) + '&size=' + escape(paginationSize));
+          $('.paginate-first').removeClass('disabled')
+            .attr('href', 'banned-instances?start=0&size=' + escape(paginationSize));
+        }
+      });
+      $('.paginate-first').click(function (event) {
+        event.preventDefault();
+
+        paginationStart = 1;
+        paginationEnd = paginationSize;
+        $(this).attr('href', null)
+          .addClass('disabled');
+        $('.paginate-left').addClass('disabled')
+          .attr('href', null);
+        updateTable(result, true);
+
+        if (paginationEnd < result.items.length) {
+          $('.paginate-right').removeClass('disabled')
+            .attr('href', 'banned-instances?start=' + escape(paginationStart - (paginationSize + 1)) + '&size=' + escape(paginationSize));
+          $('.paginate-last').removeClass('disabled')
+            .attr('href', 'banned-instances?start=' + escape(Math.floor(result.items.length / paginationSize) * paginationSize) + '&size=' + escape(paginationSize));
+        }
+      });
+      $('.paginate-last').click(function (event) {
+        event.preventDefault();
+
+        paginationStart = Math.floor(result.items.length / paginationSize) * paginationSize + 1;
+        paginationEnd = paginationStart + paginationSize - 1;
+        $(this).attr('href', null);
+        $(this).addClass('disabled');
+        $('.paginate-right').addClass('disabled')
+          .attr('href', null);
+        updateTable(result, true);
+
+        if (paginationStart > 1) {
+          $('.paginate-left').removeClass('disabled')
+            .attr('href', 'banned-instances?start=' + escape(paginationEnd - paginationSize + 1) + '&size=' + escape(paginationSize));
+          $('.paginate-first').removeClass('disabled')
+            .attr('href', 'banned-instances?start=0&size=' + escape(paginationSize));
+        }
+      });
+    </script>
+  </body>
+</html>
