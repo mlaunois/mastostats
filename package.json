@@ -41,7 +41,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "marked": "^0.7.0",
+    "marked": "^4.0.10",
     "marked-man": "^0.6.0"
   }
 }
